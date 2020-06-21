@@ -6,6 +6,8 @@ import qrcode
 
 from flask import Flask, request, send_file
 
+from trackedqr import TrackedQRType
+
 app = Flask(__name__)
 
 
@@ -23,7 +25,10 @@ def index():
 
 @app.route("/marker")
 def marker():
-    size = int(request.args.get("size"))
+    size_code = int(request.args.get("size"), 16)
+    reference = bool(int(request.args.get("reference")))
+    type_code = size_code \
+        + (TrackedQRType.REFERENCE if reference else TrackedQRType.TARGET)
     name = request.args.get("name").encode()[:16]
 
     qr = qrcode.QRCode(
@@ -33,10 +38,12 @@ def marker():
         border=0,
     )
 
-    qr.add_data(bytes([size]))
+    qr.add_data(bytes([type_code]))
     qr.add_data(name)
     qr.make()
     qr_img = qr.make_image(fill_color="black", back_color="white")
+
+    size = TrackedQRType.SIZES_CM[size_code]
 
     scaled_px = int(size / 2.54 * 72)  # size is in cm, 72 dpi final image
     qr_img = qr_img.resize((scaled_px, scaled_px), Image.NEAREST)
