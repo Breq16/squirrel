@@ -49,3 +49,5 @@ def marker():
     draw.text((10, qr_img.size[0]+30), name.decode(errors="ignore"), 0, font=font)
 
     return serve_pil_image(full_img)
+
+app.run()
